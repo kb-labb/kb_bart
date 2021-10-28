@@ -1,0 +1,8 @@
+/data
+/config
+/checkpoints
+/fairseq
+/apex
+/multirun
+output*
+file*
