@@ -31,7 +31,14 @@ def bpe_tokenizer_trainer(text, vocab_size, min_frequency=0, add_prefix_space=Tr
     # Supply either path to txt file or list of strings as text arg
 
     tokenizer = Tokenizer(models.BPE())
-    tokenizer.pre_tokenizer = pre_tokenizers.ByteLevel(add_prefix_space=add_prefix_space)
+
+    tokenizer.pre_tokenizer = pre_tokenizers.Sequence(
+        [
+            pre_tokenizers.Whitespace(),
+            pre_tokenizers.Punctuation(),
+            pre_tokenizers.ByteLevel(add_prefix_space=add_prefix_space),
+        ]
+    )
     tokenizer.normalizer = normalizers.Sequence(
         [normalizers.Nmt(), normalizers.NFKC(), normalizers.Replace(Regex(" {2,}"), " "),]
     )
@@ -76,4 +83,4 @@ dataset = load_dataset(
 )
 
 dataset = concatenate_datasets([dataset["wiki"], dataset["oscar_local"]])
-bpe_tokenizer_trainer(text=dataset, vocab_size=50260)
+bpe_tokenizer_trainer(text=dataset, vocab_size=50265)
