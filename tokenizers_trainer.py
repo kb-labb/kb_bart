@@ -83,4 +83,4 @@ dataset = load_dataset(
 )
 
 dataset = concatenate_datasets([dataset["wiki"], dataset["oscar_local"]])
-bpe_tokenizer_trainer(text=dataset, vocab_size=50265)
+bpe_tokenizer_trainer(text=dataset, vocab_size=50260)
