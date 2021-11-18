@@ -3,14 +3,14 @@
 #SBATCH --job-name=kb_bart_faton
 #SBATCH --mem=35G
 #SBATCH --gres=gpu:4
-#SBATCH --nodes=2
+#SBATCH --nodes=4
 #SBATCH --cpus-per-gpu=4
 #SBATCH --time=0-04:00:00
-#SBATCH --output=logs/faton3.log
+#SBATCH --output=logs/faton.log
 
 # module purge
 export MASTER_ADDR=`/bin/hostname -s`
-export MASTER_PORT=11542
+export MASTER_PORT=11543
 export NPROC_PER_NODE=4
 
 
