@@ -1,16 +1,17 @@
 #!/bin/bash
 #SBATCH --partition=gpu
-#SBATCH --job-name=kb_bart_faton
-#SBATCH --mem=35G
+#SBATCH --job-name=kb_bart
+#SBATCH --mem=40G
 #SBATCH --gres=gpu:4
-#SBATCH --nodes=4
-#SBATCH --cpus-per-gpu=4
-#SBATCH --time=0-04:00:00
+#SBATCH --nodes=16
+#SBATCH --nodelist=gn[45-60]
+#SBATCH --cpus-per-gpu=2
+#SBATCH --time=1-07:00:00
 #SBATCH --output=logs/faton.log
 
 # module purge
 export MASTER_ADDR=`/bin/hostname -s`
-export MASTER_PORT=11543
+export MASTER_PORT=13633
 export NPROC_PER_NODE=4
 
 
