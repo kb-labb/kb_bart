@@ -3,16 +3,25 @@
 User should
 
 1. Clone this repo
-2. Clone and install [fairseq](https://github.com/pytorch/fairseq#requirements-and-installation).
+2. Clone and install the following fork of fairseq [Lauler/fairseq](https://github.com/Lauler/fairseq).
 3. (Optional) For faster training, clone and build NVIDIAS's apex library (see instructions above in the fairseq documentation). Make sure that system CUDA version matches the CUDA version pytorch was built with in local python environment before attempting to install apex (otherwise there will be version mismatch).
 
-Installation and training were tested on Pytorch 1.9.1 with CUDA 11.1, and [compatible cuDNN](https://developer.nvidia.com/rdp/cudnn-archive) (v8.0.5).
+Optionally users may build a Singularity container that has all these dependencies. See the file `singularity_pytorch_bart.def` for a definition file of the singularity container we built and used ourselves. You can build the same container using the command
+
+```
+sudo singularity build pytorch_21.10_bart.sif singularity_pytorch_bart.def
+```
+
+This will create a singularity image file `pytorch_21.10_bart.sif` which you can either use interactively via `singularity shell --nv pytorch_21.10_bart.sif` or use to execute scripts via `singularity exec --nv pytorch_21.10_bart.sif ...`, where `...` are programs/commands you want to run or issue.
 
 ## Data and tokenization
 
-Assuming you have a large corpus to pretrain on, you should arrange the data into one or several text files with one sentence/paragraph/sequence per line. If you have limited RAM memory, consider sharding the text file into multiple chunks. A convenience script for doing this can be found in `shard_txt_file.sh`. 
+Assuming you have a large corpus to pretrain on, you should arrange the data into one or several text files with one sequence (can be composed of many sentences) per line. If you have limited GPU memory, consider sharding the text file into multiple chunks. A convenience script for doing this can be found in `shard_txt_file.sh`. 
 
-Two methods for training GPT2-style BPE tokenizers are provided: `tokenizers_trainser.py` and `sentencepiece_trainer.py`. We have used -- and recommend using -- `sentencepiece_trainer.py`. To use [sentencepiece](https://github.com/google/sentencepiece) first install
+Two methods for training GPT2-style BPE tokenizers are provided: `tokenizers_trainer.py` (Huggingface's tokenizers) and `sentencepiece_trainer.py` (Google's SentecePiece). 
+
+### Sentencepiece
+To use [sentencepiece](https://github.com/google/sentencepiece) first install
 
 ```
 pip install sentencepiece
@@ -20,18 +29,52 @@ pip install sentencepiece
 
 Then 
 
-1. Run `sentencepiece_trainer.py` to train your tokenizer. This will generate two files: `spm.bpe.model` and `spm.bpe.vocab`. Train the tokenizer on the full dataset.
+1. Run `sentencepiece_trainer.py` to train your tokenizer. This will generate two files: `spm.bpe.model` and `spm.bpe.vocab`. 
 2. (Optional) Shard your dataset with `shard_txt_file.sh`.
 3. Apply the tokenizer you have trained on the text file shard by running `sentencepiece_encoder.py`. This script will byte pair encode your text and generate output files ending with suffix `.bpe`.
 
+### Huggingface tokenizers
+To use tokenizers from Huggingface you
+
+1. Run tokenizers_trainer.py to train your tokenizer. This will generate a file called `tokenizer.json`.
+2. (Optional) Shard your datasets using `shard_txt_file.sh`.
+3. Apply the tokenizer you have trained to tokenize the text file shards by running `tokenizers_encoder.py`. We launch multiple parallel jobs on SLURM to encode each individual shard via the script `tokenizers_encoder_run.sh`. 
+
 ## Preprocess data with fairseq
 
-Once we have tokenized our data and converted it to byte pair encoded format, we are ready to preprocess it to a format `fairseq` can ingest during training. In order to do this run `preprocess.sh`. This will convert the bpe-files to a format that is fast to read from disk (.bin together with a corresponding .idx). The preprocessing script will also generate a dict.txt for us. 
+Once we have tokenized our data and converted it to byte pair encoded format, we are ready to preprocess it to a format `fairseq` can ingest during training.
+
+**IMPORTANT:** You need to run `fairseq-preprocess` once on your entire dataset to generate a `dict.txt` which covers all the text in your training/validation data. If you have sharded your dataset in the previous step, this means you need to (re)create a big text file that combines all the tokenized shards into one giant file. For example something like:
+
+```bash
+singularity exec pytorch_21.03_bart.sif \
+    fairseq-preprocess --only-source \
+    --trainpref "/path/to/all_data.txt" \
+    --validpref "/path/to/valid.txt" \
+    --destdir "/path/to/dest_folder/all" \
+    --workers 64
+```
+
+In the above example, the resulting `dict.txt` will be available in the folder `/path/to/dest_folder/all`. A big file of 101 GB took us about 2h 30min to preprocess with 20 workers (threads). With 128 workers the same file was preprocessed in 42 minutes. 
+
+Once you have a `dict.txt` which covers your entire dataset, you can preprocess the individual shards by pointing to your "master dictionary file" using the `--srcdict` argument in `fairseq-preprocess`. 
+
+```bash
+singularity exec pytorch_21.03_bart.sif \
+    fairseq-preprocess --only-source \
+    --trainpref "/path/to/all_data.txt" \
+    --validpref "/path/to/valid.txt" \
+    --destdir "/path/to/dest_folder/all" \
+    --srcdict "/path/to/dict.txt" \
+    --workers 64
+```
+
+We have a bash script for launching multiple jobs to preprocess the shards in `preprocess.sh`. 
 
 ## Train the model
 
-Finally we have everything that is needed to start training. See `train_bart.sh` for a BART training script. 
+Finally we have everything that is needed to start training. See `train_bart.sh` and `train_bart_args.sh` for a BART pre-training script. 
 
-I have done my best to translate what was written in the paper to fairseq config commands by reading the fairseq docs and the relevant source code. Details on dropout and learning rate are not entirely clear from paper, so I recommend experimenting for yourselves. 
+I have done my best to translate what was written in the paper to fairseq config commands by reading the fairseq docs and the relevant source code. Details on dropout and learning rate are not  clear from paper. You need to set these yourselves and adjust based on your batch size. 
 
-Kindly open an issue if you notice something strange with my suggested config.
+Kindly open an issue if you notice anything strange with my suggested config.
