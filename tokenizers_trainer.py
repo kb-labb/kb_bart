@@ -13,16 +13,6 @@ from tokenizers import (
 
 def batch_iterator(dataset, dataset_size, batch_size):
     for i in range(0, dataset_size, batch_size):
-        # Tokenizers ignore new lines, but when writing to .txt-file
-        # we don't want newlines inserted at every \n, only at the end
-        text_batch = map(
-            lambda text: text.replace("\n", " ") + "\n", dataset[i : i + batch_size]["text"]
-        )
-        yield list(text_batch)
-
-
-def batch_iterator(dataset, dataset_size, batch_size):
-    for i in range(0, dataset_size, batch_size):
         yield dataset[i : i + batch_size]["text"]
 
 
