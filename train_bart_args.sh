@@ -5,7 +5,7 @@ which python
 
 # List all data folders in 'data/' and make a colon separated list of the data folders.
 # data/oscar.split0.docs.token/:data/oscar.split01.docs.token/:... etc
-data_dirs=$(ls -d -1 "data/"**/ | tr "\n" ":") 
+# data_dirs=$(ls -d -1 "data/"**/ | tr "\n" ":") 
 # shuffled_dirs = data_dirs=$(ls -d -1 "data/"**/ | shuf | tr "\n" ":") 
 
 # Fairseq is stupid and thinks data ends when we stop listing new shards.
@@ -17,19 +17,7 @@ data_dirs=$(ls -d -1 "data/"**/ | tr "\n" ":")
 
 # checkpoint80 means we are starting on Cycle 3 (we have 40 shards per cycle).
 # We add another ${data_dirs} whenever we reach 40, 80, 120, 160, ...
-data_dirs=${data_dirs}${data_dirs}${data_dirs}${data_dirs}${data_dirs}${data_dirs}
-
-
-# Creating a bunch of symlinks to each data shard to get around the issue. 
-# did not work... Training has to be restarted every time fairseq cycles through
-# the 40 shards...
-# for dir in $(ls data_symlink)
-# do  
-#     shuffled_dirs=$(ls -d -1 "data_symlink/${dir}/"* | shuf | tr "\n" ":")
-#     data_dirs=${data_dirs}${shuffled_dirs}
-# done
-
-echo data_dirs
+# data_dirs=${data_dirs}${data_dirs}${data_dirs}${data_dirs}${data_dirs}${data_dirs}${data_dirs}${data_dirs}${data_dirs}
 
 
 python -m torch.distributed.launch \
@@ -38,7 +26,7 @@ python -m torch.distributed.launch \
     --node_rank=$SLURM_NODEID \
     --master_addr=$MASTER_ADDR \
     --master_port=$MASTER_PORT \
-    $(which fairseq-train) $data_dirs \
+    $(which fairseq-train) $DATA_DIRS \
     --train-subset train \
     --skip-invalid-size-inputs-valid-test \
     --ignore-unused-valid-subsets \
