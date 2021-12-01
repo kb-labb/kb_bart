@@ -40,14 +40,8 @@ def main():
 
     args = get_args()
 
-    tokenizer = PreTrainedTokenizerFast(tokenizer_file=args.tokenizer,
-                                        bos_token="<s>",
-                                        eos_token="</s>",
-                                        unk_token="<unk>",
-                                        pad_token="<pad>",
-                                        mask_token="<mask>",
-                                        cls_token="</s>",
-                                        sep_token="</s>")
+    with open(args.tokenizer) as fin:
+        tokenizer = json.load(fin)
 
     bart = BARTModel.from_pretrained(
         args.folder, checkpoint_file=args.checkpoint)
