@@ -2,7 +2,6 @@ from fairseq.models.bart import BARTModel
 from typing import Dict
 import json
 from copy import deepcopy
-from transformers import PreTrainedTokenizerFast
 import argparse
 
 
