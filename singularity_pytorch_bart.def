@@ -1,0 +1,25 @@
+BootStrap: docker
+From: nvcr.io/nvidia/pytorch:21.10-py3
+
+# %runscript
+#     echo "Building Nvidia Pytorch singularity image with fairseq"
+#     source $(conda info --base)/etc/profile.d/conda.sh
+#     conda activate base
+
+%environment
+    export LC_ALL=C
+
+%post
+    # create mount points for SLING
+    mkdir /data1 /data2 /data0
+    mkdir -p /var/spool/slurm
+    mkdir -p /d/hpc
+    mkdir -p /ceph/grid
+    mkdir -p /ceph/hpc
+    mkdir -p /scratch
+    mkdir -p /exa5/scratch
+
+    pip install --no-cache-dir transformers datasets pyarrow sentencepiece
+    git clone https://github.com/Lauler/fairseq
+    cd fairseq
+    pip install --editable ./
