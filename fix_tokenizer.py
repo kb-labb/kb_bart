@@ -29,7 +29,7 @@ def get_args() -> argparse.Namespace:
     parser.add_argument("--checkpoint",
                         type=str,
                         default="checkpoint_best.pt", help="Name of the BART checkpoint file.")
-    parser.add_argument("--folder", type=str, defautlt="bart_model",
+    parser.add_argument("--folder", type=str, default="bart_model",
                         help="Path to the folder containing a BART checkpoint and dict.txt")
     parser.add_argument("--new_tokenizer", type=str,
                         default="tokenizer_fixed.json", help="Path to the new tokenizer-json")
