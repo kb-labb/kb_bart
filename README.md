@@ -106,3 +106,7 @@ Finally we have everything that is needed to start training. See `train_bart.sh`
 I have done my best to translate what was written in the paper to fairseq config commands by reading the fairseq docs and the relevant source code. Details on dropout and learning rate are not  clear from paper. You need to set these yourselves and adjust based on your batch size. 
 
 Kindly open an issue if you notice anything strange with my suggested config.
+
+## Convert to Huggingface format
+
+Look at the file [`save_to_hugginface.py`](https://github.com/kb-labb/kb_bart/blob/main/save_to_huggingface.py) for an example on how to convert the pretrained BART model to a Huggingface compatible format. 
