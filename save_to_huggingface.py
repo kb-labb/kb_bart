@@ -27,7 +27,9 @@ def remove_ignore_keys_(state_dict):
 def get_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--tokenizer", type=str, default="tokenizer.json")
-    parser.add_argument("--checkpoint", type=str, default="checkpoints/checkpoint_best.pt")
+    parser.add_argument(
+        "--checkpoint", type=str, default="checkpoints/checkpoint_best.pt"
+    )
     return parser.parse_args()
 
 
@@ -41,7 +43,7 @@ def main():
         unk_token="<unk>",
         pad_token="<pad>",
         mask_token="<mask>",
-        cls_token="</s>",
+        cls_token="<s>",
         sep_token="</s>",
     )
 
